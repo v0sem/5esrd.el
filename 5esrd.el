@@ -1,15 +1,15 @@
-;;; 5esrd.el --- Tools for writing D&D content from emacs
+;;; 5esrd.el --- Tools for writing D&D content -*- lexical-binding: md; -*-
 ;;
 ;; Copyright (C) 2024 Vosem
 ;;
-;; Author: Vosem <vosem@gr0g>
-;; Maintainer: Vosem <vosem@gr0g>
+;; Author: Vosem <progpabsanch@gmail.com>
+;; Maintainer: Vosem <progpabsanch@gmail.com>
 ;; Created: abril 24, 2024
 ;; Modified: abril 24, 2024
 ;; Version: 0.0.1
-;; Keywords: Symbol’s value as variable is void: finder-known-keywords
+;; Keywords: games abbrev
 ;; Homepage: https://github.com/vosem/5esrd
-;; Package-Requires: ((emacs "24.3"))
+;; Package-Requires: ((emacs "28.1"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -22,12 +22,22 @@
 ;;;; Requirements:
 
 (require 'cl-lib)
+(require 'subr-x)
 
 ;;;;Functions
 
 ;;;;; Public
 
-
+(defun 5esrd-roll ()
+  "Read from minibuffer and roll."
+  (let ((roll (5esrd--str-roll (read-from-minibuffer "Roll:"))))
+    (concat
+     "Result: "
+     (string-join (mapcar #'number-to-string (car roll)) " ")
+     " + "
+     (number-to-string (car (cdr roll)))
+     " = "
+     (number-to-string (+ (seq-reduce #'+ (car roll) 0) (car (cdr roll)))))))
 
 ;;;;; Private
 (defun 5esrd--roll-die (die)
@@ -38,8 +48,20 @@
   "Return a list of AMNT rolls with DICE."
   (let ((rolls nil))
     (dotimes (roll amnt)
-      (setf rolls (cons (5esrd-roll-die dice) rolls)))
+      (setf rolls (cons (5esrd--roll-die dice) rolls)))
     rolls))
+
+(defun 5esrd--str-roll (str)
+  "Read roll from STR and extract values."
+  (let ((parts (split-string str "d")))
+    (when (not (length= parts 2))
+      (error "Wrong format"))
+    (let ((mod (split-string (car (cdr parts)) "+")))
+      (when (length= mod 2)
+        (list (5esrd--roll-dice
+               (cl-parse-integer (car parts))
+               (cl-parse-integer (car mod)))
+              (cl-parse-integer (car (cdr mod))))))))
 
 (provide '5esrd)
 ;;; 5esrd.el ends here
