@@ -1,4 +1,4 @@
-;;; 5esrd.el --- Tools for writing D&D content -*- lexical-binding: md; -*-
+;;; 5esrd.el --- Tools for writing D&D content -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2024 Vosem
 ;;
@@ -31,13 +31,7 @@
 (defun 5esrd-roll ()
   "Read from minibuffer and roll."
   (let ((roll (5esrd--str-roll (read-from-minibuffer "Roll:"))))
-    (concat
-     "Result: "
-     (string-join (mapcar #'number-to-string (car roll)) " ")
-     " + "
-     (number-to-string (car (cdr roll)))
-     " = "
-     (number-to-string (+ (seq-reduce #'+ (car roll) 0) (car (cdr roll)))))))
+    (number-to-string (+ (seq-reduce #'+ (car roll) 0) (car (cdr roll))))))
 
 ;;;;; Private
 (defun 5esrd--roll-die (die)
@@ -47,7 +41,7 @@
 (defun 5esrd--roll-dice (amnt dice)
   "Return a list of AMNT rolls with DICE."
   (let ((rolls nil))
-    (dotimes (roll amnt)
+    (dotimes (i amnt)
       (setf rolls (cons (5esrd--roll-die dice) rolls)))
     rolls))
 
@@ -56,12 +50,22 @@
   (let ((parts (split-string str "d")))
     (when (not (length= parts 2))
       (error "Wrong format"))
-    (let ((mod (split-string (car (cdr parts)) "+")))
-      (when (length= mod 2)
-        (list (5esrd--roll-dice
-               (cl-parse-integer (car parts))
-               (cl-parse-integer (car mod)))
-              (cl-parse-integer (car (cdr mod))))))))
+    (let ((modpos (split-string (car (cdr parts)) "+")))
+      (if (length= modpos 2)
+          (list (5esrd--roll-dice
+                 (cl-parse-integer (car parts))
+                 (cl-parse-integer (car modpos)))
+                (cl-parse-integer (car (cdr modpos))))
+        (let ((modneg (split-string (car (cdr parts)) "-")))
+          (if (length= modneg 2)
+              (list (5esrd--roll-dice
+                     (cl-parse-integer (car parts))
+                     (cl-parse-integer (car modneg)))
+                    (* -1 (cl-parse-integer (car (cdr modneg)))))
+            (list (5esrd--roll-dice
+                   (cl-parse-integer (car parts))
+                   (cl-parse-integer (car modneg)))
+                  0)))))))
 
 (provide '5esrd)
 ;;; 5esrd.el ends here
