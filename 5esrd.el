@@ -43,6 +43,11 @@
 
 ;;;;; Public
 
+(defun 5esrd-get-monster ()
+  (completing-read
+   "Search for a monster: "
+   '(("Deva" 1) "Mimic" "another")))
+
 (defun 5esrd-roll ()
   "Read from minibuffer and roll."
   (let ((roll (5esrd--str-roll (read-from-minibuffer "Roll:"))))
