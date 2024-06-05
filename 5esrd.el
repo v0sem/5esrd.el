@@ -39,7 +39,34 @@
 (require 'cl-lib)
 (require 'subr-x)
 
-;;;;Functions
+;;;; Structures
+
+(cl-defstruct monster
+  name
+  size
+  type
+  subtype
+  alignment
+  ac
+  hp
+  speed
+  stats)
+
+;;;; Functions
+
+(defun save-monster (mons)
+  "Prints MONS in list expression to fetch later."
+  (list (downcase (monster-name mons))
+        (list
+         (monster-name mons)
+         (monster-size mons)
+         (monster-type mons)
+         (monster-subtype mons)
+         (monster-alignment mons)
+         (monster-ac mons)
+         (monster-hp mons)
+         (monster-speed mons)
+         (monster-stats mons))))
 
 ;;;;; Public
 
