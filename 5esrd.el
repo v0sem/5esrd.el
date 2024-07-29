@@ -50,30 +50,87 @@
   ac
   hp
   speed
-  stats)
+  stats
+  svthrow
+  skills
+  inmunities
+  senses
+  lang
+  challenge
+  effects
+  actions
+  legenactions
+  extra)
 
-;;;; Functions
+;;;; Database Functions
 
-(defun save-monster (mons)
-  "Prints MONS in list expression to fetch later."
-  (list (downcase (monster-name mons))
-        (list
-         (monster-name mons)
-         (monster-size mons)
-         (monster-type mons)
-         (monster-subtype mons)
-         (monster-alignment mons)
-         (monster-ac mons)
-         (monster-hp mons)
-         (monster-speed mons)
-         (monster-stats mons))))
+(defun 5esrd-load-monsters ()
+  "Load monsters from monsters.el file."
+  (load (buffer-file-name (find-file-noselect "monsters.el"))))
+
+(defun 5esrd-save-monsters ()
+  "Save monsters to monsters.el file."
+  (save-excursion
+    (let ((buf (find-file-noselect "monsters.el")))
+      (set-buffer buf)
+      (erase-buffer)
+      (5esrd--save-list *monsters* buf)
+      (print (list 'setq '*monsters* (list 'quote varlist)) buf)
+      (save-buffer)
+      (kill-buffer))))
+
+(defun 5esrd--save-list (varlist buf)
+  "Takes VARLIST and save it onto BUF. Auxiliar function."
+  (cl-loop for monster in varlist do
+           (print (list 'setq monster (list 'quote (symbol-value monster))) buf)))
+
+(defun 5esrd-add-monster ()
+  "Add a monster to the monster list."
+  (add-to-list *monsters* (5esrd--save-monster (read-from-minibuffer "Name of the monster: "))))
+
+(defun 5esrd--save-monster (mons)
+  "Create a new variable MONS with the monster created by user input."
+  (set (intern mons)
+       (make-monster :name mons
+                     :size (read-from-minibuffer "Size: ")
+                     :type (read-from-minibuffer "Type: ")
+                     :subtype (read-from-minibuffer "Subtype: ")
+                     :alignment (read-from-minibuffer "Alignment: ")
+                     :ac (read-from-minibuffer "Armor Class: ")
+                     :hp (read-from-minibuffer "Hit Points: ")
+                     :speed (read-from-minibuffer "Speed: ")
+                     :stats (5esrd--ask-stats)
+                     :svthrow (read-from-minibuffer "Saving Throws: ")
+                     :skills (read-from-minibuffer "Skills: ")
+                     :inmunities (read-from-minibuffer "Inmunities: ")
+                     :senses (read-from-minibuffer "Senses: ")
+                     :lang (read-from-minibuffer "Languages: ")
+                     :challenge (read-from-minibuffer "Challenge: ")
+                     :effects (5esrd--ask-name-list "effect")
+                     :actions (5esrd--ask-name-list "action")
+                     :legenactions (5esrd--ask-name-list "legendary action")
+                     :extra (5esrd--ask-name-list "extra info"))))
+
+(defun 5esrd--ask-stats ()
+  "Return a list with stats with the minibuffer input."
+  (cl-loop for stat in '("Strength: " "Dexterity: " "Constitution: " "Intelligence: " "Wisdom: " "Charisma: ") collect
+           (string-to-number (read-from-minibuffer stat))))
+
+(defun 5esrd--ask-name-list (category)
+  "Ask the user to input a series of data for CATEGORY."
+  (cl-loop while (y-or-n-p (concat "Add new " category "? "))
+           collect (list (read-from-minibuffer "Name: ") (read-from-minibuffer "Description: "))))
 
 ;;;;; Public
 
 (defun 5esrd-get-monster ()
-  (completing-read
-   "Search for a monster: "
-   '(("Deva" 1) "Mimic" "another")))
+  (let ((monster-search
+         (cl-loop for mon in *monsters* collect
+                  (list (monster-name (symbol-value mon)) (symbol-value mon)))))
+    (cadr (assoc (completing-read
+                  "Search for a monster: "
+                  monster-search
+                  ) monster-search))))
 
 (defun 5esrd-roll ()
   "Read from minibuffer and roll."
