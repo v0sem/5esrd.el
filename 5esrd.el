@@ -75,7 +75,7 @@
       (set-buffer buf)
       (erase-buffer)
       (5esrd--save-list *monsters* buf)
-      (print (list 'setq '*monsters* (list 'quote varlist)) buf)
+      (print (list 'setq '*monsters* (list 'quote *monsters*)) buf)
       (save-buffer)
       (kill-buffer))))
 
@@ -86,7 +86,7 @@
 
 (defun 5esrd-add-monster ()
   "Add a monster to the monster list."
-  (add-to-list *monsters* (5esrd--save-monster (read-from-minibuffer "Name of the monster: "))))
+  (add-to-list '*monsters* (5esrd--save-monster (read-from-minibuffer "Name of the monster: "))))
 
 (defun 5esrd--save-monster (mons)
   "Create a new variable MONS with the monster created by user input."
@@ -109,7 +109,8 @@
                      :effects (5esrd--ask-name-list "effect")
                      :actions (5esrd--ask-name-list "action")
                      :legenactions (5esrd--ask-name-list "legendary action")
-                     :extra (5esrd--ask-name-list "extra info"))))
+                     :extra (5esrd--ask-name-list "extra info")))
+  (intern mons))
 
 (defun 5esrd--ask-stats ()
   "Return a list with stats with the minibuffer input."
