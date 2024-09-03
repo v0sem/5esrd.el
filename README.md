@@ -20,11 +20,15 @@ This program provides a set of tools to help write content for D&D fifth edition
 
 *This list is subject to change*
 
-[x] Rolling dice
-[ ] Inserting monsters
-    [ ] Being able to change the format on how monsters are inserted
-[ ] Inserting other content
-[ ] Adding third party content into the local database.
+- [x] Rolling dice
+- [x] Managing a database
+    - [ ] Optimizing (dont load everything every time)
+    - [x] Inserting items
+    - [ ] Removing items 
+- [ ] Inserting monsters
+    - [ ] Being able to change the format on how monsters are inserted
+- [ ] Inserting other content
+- [ ] Adding third party content into the local database.
 
 
 ## Acknowledgements
