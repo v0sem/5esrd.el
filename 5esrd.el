@@ -62,11 +62,48 @@
   legenactions
   extra)
 
+                                        ; TODO: Macro this shit when you learn how (probably)
+(defun 5esrd--stats-to-text (monster)
+  "Return MONSTER stats in a Obsidian friendly text."
+  (concat "[" (int-to-string (nth 0 (monster-stats monster))) ", "
+          (int-to-string (nth 1 (monster-stats monster))) ", "
+          (int-to-string (nth 2 (monster-stats monster))) ", "
+          (int-to-string (nth 3 (monster-stats monster))) ", "
+          (int-to-string (nth 4 (monster-stats monster))) ", "
+          (int-to-string (nth 5 (monster-stats monster))) "]"))
+
+(defun 5esrd--saves-to-text (monster)
+  (concat "saves\n"
+          (cl-loop for stat in '("STR" "DEX" "CON" "INT" "WIS" "CHA")
+                   when )))
+
+(defun 5esrd--monster-to-text (monster)
+  "Transform MONSTER structure to string."
+  (concat "```statblock" "\n"
+          "name: " (monster-name monster) "\n"
+          "size: " (monster-size monster) "\n"
+          "type: " (monster-type monster) "\n"
+          "subtype: " (monster-subtype monster) "\n"
+          "alignment: " (monster-alignment monster) "\n"
+          "ac: " (monster-ac monster) "\n"
+          "hp: " (monster-hp monster) "\n"
+          "speed: " (monster-speed monster) "\n"
+          "stats: " (5esrd--stats-to-text monster) "\n"
+          "senses: " (monster-senses monster) "\n"
+          "languages: " (monster-lang monster) "\n"
+          "```\n"))
+
 ;;;; Database Functions
 
 (defun 5esrd-load-monsters ()
   "Load monsters from monsters.el file."
   (load (buffer-file-name (find-file-noselect "monsters.el"))))
+
+(defun 5esrd-unload-monsters ()
+  "Unload monsters from memory, hopefully."
+  (cl-loop for monster in *monsters* do
+           (makunbound monster))
+  (makunbound '*monsters*))
 
 (defun 5esrd-save-monsters ()
   "Save monsters to monsters.el file."
@@ -100,7 +137,7 @@
                      :hp (read-from-minibuffer "Hit Points: ")
                      :speed (read-from-minibuffer "Speed: ")
                      :stats (5esrd--ask-stats)
-                     :svthrow (read-from-minibuffer "Saving Throws: ")
+                     :svthrow (5esrd--ask-saves)
                      :skills (read-from-minibuffer "Skills: ")
                      :inmunities (read-from-minibuffer "Inmunities: ")
                      :senses (read-from-minibuffer "Senses: ")
@@ -121,6 +158,12 @@
   "Ask the user to input a series of data for CATEGORY."
   (cl-loop while (y-or-n-p (concat "Add new " category "? "))
            collect (list (read-from-minibuffer "Name: ") (read-from-minibuffer "Description: "))))
+
+(defun 5esrd--ask-saves ()
+  "Collect saving throws for monsters."
+  (cl-loop for stat in '("STR" "DEX" "CON" "INT" "WIS" "CHA")
+           collect (if (y-or-n-p (concat "Saving throw for " stat "? "))
+                       (string-to-number (read-from-minibuffer "Amount: ")))))
 
 ;;;;; Public
 
